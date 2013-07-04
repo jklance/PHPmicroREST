@@ -5,7 +5,8 @@
     # Send request via index.php 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-l
 
     # NOTICE: Replace the path below (up to the $1) with the path to your REST controller 
-    RewriteRule ^(.*)$ /v1/index.php/$1 [L]
+    RewriteRule ^(.*)$ /v1/index.php?req=$1 [L]
 </IfModule>

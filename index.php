@@ -4,7 +4,7 @@
  *
  * @package     PHPmicroREST
  * @version     0.1
- * @author      Jer Lance <me@jerlanc<me@jerlance.com>
+ * @author      Jer Lance <me@jerlance.com>
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
  * 
@@ -28,26 +28,18 @@
  * Error reporting
  */
 error_reporting(E_ALL);
-
-/**
- * Include a file supplying necessary database credentials
- *
- * @param string $dbHost    hostname for the database
- * @param string $dbBase    database name
- * @param string $dbUser    username for the database
- * @param string $dbPass    password for username supplied
- */
-require('../../scripts/ibloviateCreds.php');
+require('classes/Rest.class.php');
 
 /**
  * Core functionality
  */
-$urlParts = get_url_parts();
+$urlParts = getUrlParts();
 $className = $urlParts[0];
 $controller = $urlParts[1];
+$arguments = count($urlParts) > 2 ? $urlParts[2] : '';
 
 $front = new $className();
-$front->{$argument}();
+$front->{$controller}($arguments);
 
 
 /**
@@ -56,10 +48,12 @@ $front->{$argument}();
  * @param string $class name of the class
  */
 function __autoload($class) {
-    (require('classes/' . $class . 'class.php')) || set_status_header('404', 'Not Found');
+    $classFile = 'classes/' . $class . '.class.php';
 
-    if (!class_exists($class, false)) {
-        set_status_header('404', 'Not Found');
+    if (file_exists($classFile)) {
+        require($classFile);
+    } else {
+        setStatusHeader('404', 'Not Found');
         exit;
     }
 }
@@ -69,19 +63,34 @@ function __autoload($class) {
  * 
  * @return array    Returns array of front[0] and controller[1]
  */
-function get_url_parts() {
-    $url = end(explode(basename(__FILE__), $_SERVER['PHP_SELF']));
-    $urlParts = explode('/', strtolower(trim($url, '/')));
-    
+function getUrlParts() {
+    $urlParts = explode('/', strtolower($_GET['req']));
+    $returnParts = array();
+
     if ($urlParts[0]) {
-        $urlParts[0] = ucfirst($urlParts[0]);
+        array_push($returnParts, ucfirst($urlParts[0]));
     } else {
         exit;
     }
-    if (!$urlParts[1]) {
-        $urlParts[1] = 'index';
+    if (count($urlParts) > 1) {
+        array_push($returnParts, $urlParts[1]);
+    } else {
+        array_push($returnParts, 'index');
     }
-    return($urlParts);   
+    if (count($urlParts) > 2) {
+        $arguments = '';
+        for($i = 2; $i < count($urlParts); $i += 2) {
+            $arguments .= $urlParts[$i];
+            if (count($urlParts) > ($i + 1)) {
+                $arguments .= '=' . $urlParts[$i + 1];
+            }
+            if (count($urlParts) > ($i + 2)) {
+                $arguments .= '&';
+            }
+        }
+        array_push($returnParts, $arguments);
+    }
+    return($returnParts);   
 }
 
 /**
@@ -90,7 +99,7 @@ function get_url_parts() {
  * @param string $code The numeric HTTP response code
  * @param string $text The message for the response (default: null)
  */
-function set_status_header($code, $text = '') {
+function setStatusHeader($code, $text = '') {
     $server_protocol = (isset($_SERVER['SERVER_PROTOCOL'])) ? $_SERVER['SERVER_PROTOCOL'] : FALSE;
 
     if (substr(php_sapi_name(), 0, 3) == 'cgi') {
