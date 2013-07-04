@@ -36,6 +36,14 @@ class Testcase extends Rest {
         $result = $this->_createDataResult();
         return($this->createResponse($result, '200', 'Success'));
     }
+    public function index_put() {
+        $result = $this->_createDataResult();
+        return($this->createResponse($result, '200', 'Success'));
+    }
+    public function index_delete() {
+        $result = $this->_createDataResult();
+        return($this->createResponse($result, '200', 'Success'));
+    }
 
     /**
      * Creates a response package including arguments and method
