@@ -3,7 +3,7 @@
  * PHPmicroREST ... index.php
  *
  * @package     PHPmicroREST
- * @version     1.0
+ * @version     1.1
  * @author      Jer Lance <me@jerlance.com>
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
@@ -61,7 +61,7 @@ function __autoload($class) {
     if (file_exists($classFile)) {
         require($classFile);
     } else {
-        setStatusHeader('404', 'Endpoint not found');
+        setStatusHeader('404', 'Not found');
         exit;
     }
 }

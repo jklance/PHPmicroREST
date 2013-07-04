@@ -3,7 +3,7 @@
  * Testcase extends the base Rest class to verify endpoints
  *
  * @package     PHPmicroREST
- * @version     1.0 
+ * @version     1.1
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
  * 
