@@ -3,7 +3,7 @@
  * Testcase extends the base Rest class to verify endpoints
  *
  * @package     PHPmicroREST
- * @version     0.1
+ * @version     1.0 
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
  * 
@@ -26,11 +26,23 @@
 class Testcase extends Rest {
 
     /**
-     * Test function to verify that GET to url.com/testcase/index works
+     * Test function to verify that calls to url.com/testcase/index work
+     * 
+     * This can serve as a template for new API endpoints. A function name of:
+     *      public function {controller}_{method}() 
+     * in class {Classname} will serve as a 'listener' to a url endpoint of:
+     *      http://url.com/{classname}/{controller} 
+     * using the specified method (get, post, put, delete).
+     *
+     * The call components are available through parent methods of the abstract 
+     * Rest class. Some include:
+     *  - getArguments()   the arguments passed in the request
+     *  - getFormat()      the format that the caller requested for the response
+     *  - createResponse() this will appropriately put headers on and format your response
      */
     public function index_get() {
         $result = $this->_createDataResult();
-        return($this->createResponse($result, '200', 'Success'));
+        return($this->createResponse($result));
     }
     public function index_post() {
         $result = $this->_createDataResult();
@@ -52,7 +64,7 @@ class Testcase extends Rest {
     /**
      * Creates a response package including arguments and method
      *
-     * @return array message, method, and request arguments
+     * @return array message, method, and request arguments for validation
      */
     private function _createDataResult() {
         $result = array(

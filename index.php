@@ -3,7 +3,7 @@
  * PHPmicroREST ... index.php
  *
  * @package     PHPmicroREST
- * @version     0.1
+ * @version     1.0
  * @author      Jer Lance <me@jerlance.com>
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
@@ -24,9 +24,6 @@
  * along with PHPmicroREST.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Error reporting
- */
 error_reporting(E_ALL);
 
 /**
@@ -67,9 +64,7 @@ function __autoload($class) {
 }
 
 /**
- * Returns the front and controller in an array
- * 
- * @return array    Returns array of front[0] and controller[1]
+ * @return array    Returns array of REST components
  */
 function getUrlParts() {
     $returnParts = array(

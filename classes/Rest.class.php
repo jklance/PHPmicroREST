@@ -4,7 +4,7 @@
  *
  * @abstract
  * @package     PHPmicroREST
- * @version     0.1
+ * @version     1.0
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
  * 
@@ -43,7 +43,11 @@ abstract class Rest {
     /**
      * Constructor stores the method and the correct arguments
      *
-     * @param array $args GET arguments passed in the URI structure
+     * @param array $components rest components passed as an array, elements:
+     *  - string [format]     the format of the return response
+     *  - array  [arguments]  array of passed GET arguments
+     *  - string [front]      front name of REST call
+     *  - string [controller] name of REST controller called
      */
     function __construct($components) {
         $this->_method    = $this->_getRequestMethod();
@@ -70,6 +74,10 @@ abstract class Rest {
         $this->_sendResponse($results);
     }
 
+/*************************************************************************************************
+ * BEGIN PUBLICLY ACCESSIBLE METHOD CALLS
+ *************************************************************************************************/
+
     /**
      * Creates response array from the result, status code, and message
      *
@@ -78,7 +86,7 @@ abstract class Rest {
      * @param  string $message   status message for result     
      * @return array             properly formed response package
      */
-    public function createResponse($result, $code, $message) {
+    public function createResponse($result, $code = '200', $message = 'Success') {
         $response = array(
             $result,
             array(
@@ -109,6 +117,10 @@ abstract class Rest {
     public function getFormat() {
         return($this->_format);
     }
+
+/*************************************************************************************************
+ * END OF PUBLICLY AVAILABLE METHOD CALLS
+ *************************************************************************************************/
 
     /**
      * Format and return the response to the call
@@ -175,7 +187,6 @@ abstract class Rest {
             }
         }
     } 
-
 
     /**
      * Retrieve the appropriate arguments for the request
