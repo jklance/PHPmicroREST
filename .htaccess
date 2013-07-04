@@ -10,3 +10,8 @@
     # NOTICE: Replace the path below (up to the $1) with the path to your REST controller 
     RewriteRule ^(.*)$ /v1/index.php?phpmicrorest_rest_request_argument_list=$1 [L]
 </IfModule>
+Options -Indexes
+<Files ~ "\.class\.php$">
+    Order allow,deny
+    Deny from all
+</Files>

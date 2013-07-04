@@ -24,9 +24,6 @@
  * along with PHPmicroREST.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Don't run this if not instantiated by the index
-//if (!getRestArgsName()) { exit; }
-
 abstract class Rest {
     /**
      * @var string the method by which the request is being made
@@ -76,10 +73,10 @@ abstract class Rest {
     /**
      * Creates response array from the result, status code, and message
      *
-     * @param array  $result    Associative array with the response data payload
-     * @param string $code      HTML status code
-     * @param string $message   status message for result     
-     * @return array properly formed response package
+     * @param  array  $result    Associative array with the response data payload
+     * @param  string $code      HTML status code
+     * @param  string $message   status message for result     
+     * @return array             properly formed response package
      */
     public function createResponse($result, $code, $message) {
         $response = array(
@@ -116,11 +113,11 @@ abstract class Rest {
     /**
      * Format and return the response to the call
      *
-     * @param array   $results  the reponse package as an associative array with elements:
-     *  - array 0  the data payload to return as an associative array
-     *  - array 1  the response status info containing elements:
-     *    - string status  the HTML status code
-     *    - string message the HTML status message
+     * @param array $results  the reponse package as an associative array with elements:
+     *  - array     [0]       the data payload to return as an associative array
+     *  - array     [1]       the response status info containing elements:
+     *    - string  [status]  the HTML status code
+     *    - string  [message] the HTML status message
      */
     private function _sendResponse($results) {
         $this->_setStatusHeader($results[1]['status'], $results[1]['message']); 
@@ -184,7 +181,7 @@ abstract class Rest {
      * Retrieve the appropriate arguments for the request
      *
      * @param  string $method  the method by which the request was made
-     * @return array arguments stored in an associative array
+     * @return array           arguments stored in an associative array
      */
     private function _getRequestArguments($method, $passedArgs) {
         $args = '';

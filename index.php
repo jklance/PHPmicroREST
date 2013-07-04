@@ -34,10 +34,9 @@ error_reporting(E_ALL);
  */
 require('classes/Rest.class.php');
 
-/**
- * Name of the GET variable the arguments will be stored in by .htaccess
- */
-define('REST_ARGS', 'phpmicrorest_rest_request_argument_list');
+define('REST_ARGS',      'phpmicrorest_rest_request_argument_list');
+define('KEY_MAX_LENGTH', 50);
+define('VAL_MAX_LENGTH', 250);
 
 
 /**
@@ -70,8 +69,6 @@ function __autoload($class) {
 /**
  * Returns the front and controller in an array
  * 
- * @todo Perform validity checking on arguments
- *
  * @return array    Returns array of front[0] and controller[1]
  */
 function getUrlParts() {
@@ -83,31 +80,91 @@ function getUrlParts() {
     );
 
     $urlParts = explode('/', strtolower($_GET[REST_ARGS]));
-
-    if (is_array($urlParts)) {
-        $returnParts['front'] = ucfirst($urlParts[0]);
-    } else {
-        // This is too badly formed to deal with. Time to bail
+    if (!is_array($urlParts)) { 
         setStatusHeader('404', 'Not Found');
         exit;
     }
+    
+    $returnParts['front'] = parseUrlFront($urlParts);
+    $returnParts['controller'] = parseUrlController($urlParts);
+    $returnParts['arguments'] = parseUrlArguments($urlParts);
 
+    return($returnParts);   
+}
+
+/**
+ * @param  array  $urlParts the exploded URI string
+ * @return string           the 'front' of the REST call
+ */
+function parseUrlFront($urlParts) {
+    return(ucfirst($urlParts[0]));
+}
+
+/**
+ * @param  array  $urlParts the exploded URI string
+ * @return string           the 'controller' of the REST call
+ */
+function parseUrlController($urlParts) {
     if (count($urlParts) > 1 && $urlParts[1]) {
-        $returnParts['controller'] = $urlParts[1];
+        return($urlParts[1]);
+    } else {
+        return('index');
     }
+}
+
+/**
+ * Breaks the arguments passed in the URI into key/value pairs and validates the key formats
+ * 
+ * @param  array $urlParts  the exploded URI string
+ * @return array            key/value pairs of arguments with validated keys
+ */
+function parseUrlArguments($urlParts) {
+    $arguments = '';
 
     if (count($urlParts) > 2) {
         $arguments = array();
         
         for($i = 2; $i < count($urlParts); $i += 2) {
-            if ($urlParts[$i] && count($urlParts) > ($i + 1) && $urlParts[$i + 1]) {
+            if (isValidKey($urlParts[$i]) && count($urlParts) > ($i + 1) && $urlParts[$i + 1]) {
                 $arguments[$urlParts[$i]] = $urlParts[$i + 1];
             }
         }
         $returnParts['arguments'] = $arguments;
     }
-    return($returnParts);   
+    return($arguments);
 }
+
+/**
+ * Ensures that they keys are valid. Using XML tag naming rules as a boundary
+ * 
+ * @param  string  $key value to validate
+ * @return boolean      whether the key is valid or not
+ */
+function isValidKey($key) {
+    // Valix XML name
+    if (!preg_match('/^(?!XML)[a-z][\w0-9-]*$/i', $key)) {
+        return(false);
+    }
+    // Valid length 
+    if (strlen($key) > KEY_MAX_LENGTH) {
+        return(false);
+    }
+    return(true);
+}        
+
+/**
+ * Ensures that they values are valid. 
+ * 
+ * @param  string  $val value to validate
+ * @return boolean      whether the value is valid or not
+ */
+function isValidValue($val) {
+    // Valid length 
+    if (strlen($val) > VAL_MAX_LENGTH) {
+        return(false);
+    }
+    return(true);
+}        
 
 /**
  * Removes the format from the end of the query string and returns it (or the default format)
@@ -150,9 +207,3 @@ function setStatusHeader($code, $text = '') {
     }
 }
 
-/**
- * @return string contents of the REST_ARG constant
- */
-function getRestArgsName() {
-    return(REST_ARGS);
-}
