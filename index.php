@@ -28,7 +28,17 @@
  * Error reporting
  */
 error_reporting(E_ALL);
+
+/**
+ * Base abstract class for the rest endpoints
+ */
 require('classes/Rest.class.php');
+
+/**
+ * Name of the GET variable the arguments will be stored in by .htaccess
+ */
+define('REST_ARGS', 'phpmicrorest_rest_request_argument_list');
+
 
 /**
  * Core functionality
@@ -38,8 +48,8 @@ $className = $urlParts[0];
 $controller = $urlParts[1];
 $arguments = count($urlParts) > 2 ? $urlParts[2] : '';
 
-$front = new $className();
-$front->{$controller}($arguments);
+$front = new $className($arguments);
+$front->{$controller}();
 
 
 /**
@@ -53,7 +63,7 @@ function __autoload($class) {
     if (file_exists($classFile)) {
         require($classFile);
     } else {
-        setStatusHeader('404', 'Not Found');
+        setStatusHeader('404', 'Endpoint not found');
         exit;
     }
 }
@@ -64,28 +74,25 @@ function __autoload($class) {
  * @return array    Returns array of front[0] and controller[1]
  */
 function getUrlParts() {
-    $urlParts = explode('/', strtolower($_GET['req']));
+    $urlParts = explode('/', strtolower($_GET[REST_ARGS]));
     $returnParts = array();
 
-    if ($urlParts[0]) {
+    if (is_array($urlParts)) {
         array_push($returnParts, ucfirst($urlParts[0]));
     } else {
         exit;
     }
-    if (count($urlParts) > 1) {
+    if (count($urlParts) > 1 && $urlParts[1]) {
         array_push($returnParts, $urlParts[1]);
     } else {
         array_push($returnParts, 'index');
     }
     if (count($urlParts) > 2) {
-        $arguments = '';
+        $arguments = array();
+        
         for($i = 2; $i < count($urlParts); $i += 2) {
-            $arguments .= $urlParts[$i];
-            if (count($urlParts) > ($i + 1)) {
-                $arguments .= '=' . $urlParts[$i + 1];
-            }
-            if (count($urlParts) > ($i + 2)) {
-                $arguments .= '&';
+            if ($urlParts[$i] && count($urlParts) > ($i + 1) && $urlParts[$i + 1]) {
+                $arguments[$urlParts[$i]] = $urlParts[$i + 1];
             }
         }
         array_push($returnParts, $arguments);
@@ -96,6 +103,8 @@ function getUrlParts() {
 /**
  * Puts the appropriate header on the response 
  * 
+ * @todo This is a duplication of the one in the Rest base class. Fix that.
+ *
  * @param string $code The numeric HTTP response code
  * @param string $text The message for the response (default: null)
  */

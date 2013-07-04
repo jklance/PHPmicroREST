@@ -35,25 +35,83 @@ abstract class Rest {
     private $_arguments = array();
     
 
-    function __construct() {
+    /**
+     * Constructor stores the method and the correct arguments
+     *
+     * @param array $args GET arguments passed in the URI structure
+     */
+    function __construct($args) {
         $this->_method = $this->_getRequestMethod();
-        $this->_arguments = $this->_getRequestArguments($this->_method);
-
+        $this->_arguments = $this->_getRequestArguments($this->_method, $args);
     }
+
+    /**
+     * Either call the appropriate controller method or show an error
+     */
     function __call($name, $args) {
         $action = $name . '_' . $this->_method;
+        $results = '';
 
         if (method_exists($this, $action)) {
-            $this->$action();
+            $results = $this->$action();
         } else {
-            setStatusHeader('404', 'Unknown action');
-            exit;
+            $results = array(
+                array( 'error' => 'failed in __call'),
+                array( 'status' => '404', 'message' => 'Unknown action')
+            );
         }
+        
+        $this->_sendResponse($results);
     }
 
+    /**
+     * Creates response array from the result, status code, and message
+     *
+     * @param array  $result    Associative array with the response data payload
+     * @param string $code      HTML status code
+     * @param string $message   status message for result     
+     * @return array properly formed response package
+     */
+    public function createResponse($result, $code, $message) {
+        $response = array(
+            $result,
+            array(
+                'status'  => $code,
+                'message' => $message
+            )
+        );
+        return($response);
+    }
+
+    /**
+     * @return string method by which the request was called
+     */
+    public function getMethod() {
+        return($this->_method);
+    }
+
+    /**
+     * @return array arguments passed with the request as an associative array
+     */
     public function getArguments() {
         return($this->_arguments);
     }
+
+    /**
+     * Format and return the response to the call
+     *
+     * @param array   $results  the reponse package as an associative array with elements:
+     *  - array 0  the data payload to return as an associative array
+     *  - array 1  the response status info containing elements:
+     *    - string status  the HTML status code
+     *    - string message the HTML status message
+     */
+    private function _sendResponse($results) {
+        $this->_setStatusHeader($results[1]['status'], $results[1]['message']); 
+        print_r($results[0]);
+        //exit;
+    }
+
 
     /**
      * Retrieve the appropriate arguments for the request
@@ -61,12 +119,12 @@ abstract class Rest {
      * @param  string $method  the method by which the request was made
      * @return array arguments stored in an associative array
      */
-    private function _getRequestArguments($method) {
-        $args = '';
+    private function _getRequestArguments($method, $passedArgs) {
+        $args;
 
         switch($method) {
             case 'get':
-                $args = $_GET;
+                // We don't do anything here, get is in $passedArgs
                 break;
             case 'post':
                 $args = $_POST;
@@ -80,7 +138,12 @@ abstract class Rest {
             default:
                 $args = $_REQUEST;
         }
-
+        if (isset($args) && is_array($args) && is_array($passedArgs)) {
+            $args = array_merge($args, $passedArgs);
+        } elseif (is_array($passedArgs)) {
+            $args = $passedArgs;
+        } 
+        
         return($args);
     }
 
@@ -98,5 +161,23 @@ abstract class Rest {
         }
 
         return($requestMethod);
+    }
+
+    /**
+     * Puts the appropriate header on the response
+     *
+     * @param string $code The numeric HTTP response code
+     * @param string $text The message for the response (default: null)
+     */
+    private function _setStatusHeader($code, $text = '') {
+        $server_protocol = (isset($_SERVER['SERVER_PROTOCOL'])) ? $_SERVER['SERVER_PROTOCOL'] : false;
+
+        if (substr(php_sapi_name(), 0, 3) == 'cgi') {
+            header("Status: $code $text", TRUE);
+        } elseif ($server_protocol == 'HTTP/1.0') {
+            header("HTTP/1.0 $code $text", TRUE, $code);
+        } else {
+            header("HTTP/1.1 $code $text", TRUE, $code);
+        }
     }
 }

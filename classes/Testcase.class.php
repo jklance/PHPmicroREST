@@ -1,6 +1,6 @@
 <?php
 /**
- * Blournal extends the base Rest class to access blog posts
+ * Testcase extends the base Rest class to verify endpoints
  *
  * @package     PHPmicroREST
  * @version     0.1
@@ -23,31 +23,31 @@
  * along with PHPmicroREST.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Include a file supplying necessary database credentials
- *
- * @param string $dbHost    hostname for the database
- * @param string $dbBase    database name
- * @param string $dbUser    username for the database
- * @param string $dbPass    password for username supplied
- */
-require_once('../../scripts/ibloviateCreds.php');
+class Testcase extends Rest {
 
-class Blournal extends Rest {
     /**
-     * Test function to verify that this endpoint works
+     * Test function to verify that GET to url.com/testcase/index works
      */
     public function index_get() {
-        echo 'Nothing to see here';
+        $result = $this->_createDataResult();
+        return($this->createResponse($result, '200', 'Success'));
+    }
+    public function index_post() {
+        $result = $this->_createDataResult();
+        return($this->createResponse($result, '200', 'Success'));
     }
 
     /**
-     * Retrieve a single blog post by identifier 
+     * Creates a response package including arguments and method
      *
+     * @return array message, method, and request arguments
      */
-    public function entry_get() {
-        echo 'TEST';
-        print_r($this->getArguments());
+    private function _createDataResult() {
+        $result = array(
+            'result'    => 'Test successful',
+            'method'    => $this->getMethod(),
+            'arguments' => $this->getArguments(),
+        );
+        return($result);
     }
-
 }

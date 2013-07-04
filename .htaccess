@@ -8,5 +8,5 @@
     RewriteCond %{REQUEST_FILENAME} !-l
 
     # NOTICE: Replace the path below (up to the $1) with the path to your REST controller 
-    RewriteRule ^(.*)$ /v1/index.php?req=$1 [L]
+    RewriteRule ^(.*)$ /v1/index.php?phpmicrorest_rest_request_argument_list=$1 [L]
 </IfModule>
