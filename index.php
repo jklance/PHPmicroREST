@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPmicroREST
+ * PHPmicroREST ... index.php
  *
  * @package     PHPmicroREST
  * @version     0.1
@@ -44,11 +44,10 @@ define('REST_ARGS', 'phpmicrorest_rest_request_argument_list');
  * Core functionality
  */
 $urlParts = getUrlParts();
-$className = $urlParts[0];
-$controller = $urlParts[1];
-$arguments = count($urlParts) > 2 ? $urlParts[2] : '';
+$className = $urlParts['front'];
+$controller = $urlParts['controller'];
 
-$front = new $className($arguments);
+$front = new $className($urlParts);
 $front->{$controller}();
 
 
@@ -71,22 +70,32 @@ function __autoload($class) {
 /**
  * Returns the front and controller in an array
  * 
+ * @todo Perform validity checking on arguments
+ *
  * @return array    Returns array of front[0] and controller[1]
  */
 function getUrlParts() {
+    $returnParts = array(
+        'front' => '',
+        'controller' => 'index',
+        'arguments' => '',
+        'format' => popFormat(),
+    );
+
     $urlParts = explode('/', strtolower($_GET[REST_ARGS]));
-    $returnParts = array();
 
     if (is_array($urlParts)) {
-        array_push($returnParts, ucfirst($urlParts[0]));
+        $returnParts['front'] = ucfirst($urlParts[0]);
     } else {
+        // This is too badly formed to deal with. Time to bail
+        setStatusHeader('404', 'Not Found');
         exit;
     }
+
     if (count($urlParts) > 1 && $urlParts[1]) {
-        array_push($returnParts, $urlParts[1]);
-    } else {
-        array_push($returnParts, 'index');
+        $returnParts['controller'] = $urlParts[1];
     }
+
     if (count($urlParts) > 2) {
         $arguments = array();
         
@@ -95,9 +104,30 @@ function getUrlParts() {
                 $arguments[$urlParts[$i]] = $urlParts[$i + 1];
             }
         }
-        array_push($returnParts, $arguments);
+        $returnParts['arguments'] = $arguments;
     }
     return($returnParts);   
+}
+
+/**
+ * Removes the format from the end of the query string and returns it (or the default format)
+ * Default format is the first element in the $validFormats array
+ *
+ * @return string requested valid format or default format
+ */
+function popFormat() {
+    $validFormats = array('json', 'xml', 'raw');
+    $requestFormat = end(explode('.', $_GET[REST_ARGS]));
+
+    if (!in_array($requestFormat, $validFormats)) {
+        $requestFormat = $validFormats[0];
+    } else {
+        $getArgs = explode('.', $_GET[REST_ARGS]);
+        array_pop($getArgs);
+        $_GET[REST_ARGS] = implode(',', $getArgs);
+    }
+    
+    return($requestFormat);
 }
 
 /**
@@ -120,3 +150,9 @@ function setStatusHeader($code, $text = '') {
     }
 }
 
+/**
+ * @return string contents of the REST_ARG constant
+ */
+function getRestArgsName() {
+    return(REST_ARGS);
+}

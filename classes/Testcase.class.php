@@ -44,6 +44,10 @@ class Testcase extends Rest {
         $result = $this->_createDataResult();
         return($this->createResponse($result, '200', 'Success'));
     }
+    public function book_get() {
+        $result = array('book_title' => 'blah');
+        return($this->createResponse($result, '200', 'Success'));
+    }
 
     /**
      * Creates a response package including arguments and method
@@ -54,6 +58,7 @@ class Testcase extends Rest {
         $result = array(
             'result'    => 'Test successful',
             'method'    => $this->getMethod(),
+            'format'    => $this->getFormat(),
             'arguments' => $this->getArguments(),
         );
         return($result);

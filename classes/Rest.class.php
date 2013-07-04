@@ -23,6 +23,10 @@
  * You should have received a copy of the Lesser GNU General Public License
  * along with PHPmicroREST.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// Don't run this if not instantiated by the index
+//if (!getRestArgsName()) { exit; }
+
 abstract class Rest {
     /**
      * @var string the method by which the request is being made
@@ -33,16 +37,21 @@ abstract class Rest {
      * @var array the arguments passed with the request
      */
     private $_arguments = array();
-    
+
+    /**
+     * @var string the format requested for the response
+     */
+    private $_format;
 
     /**
      * Constructor stores the method and the correct arguments
      *
      * @param array $args GET arguments passed in the URI structure
      */
-    function __construct($args) {
-        $this->_method = $this->_getRequestMethod();
-        $this->_arguments = $this->_getRequestArguments($this->_method, $args);
+    function __construct($components) {
+        $this->_method    = $this->_getRequestMethod();
+        $this->_arguments = $this->_getRequestArguments($this->_method, $components['arguments']);
+        $this->_format    = $components['format'];
     }
 
     /**
@@ -98,6 +107,13 @@ abstract class Rest {
     }
 
     /**
+     * @return string format to return results in
+     */
+    public function getFormat() {
+        return($this->_format);
+    }
+
+    /**
      * Format and return the response to the call
      *
      * @param array   $results  the reponse package as an associative array with elements:
@@ -108,9 +124,60 @@ abstract class Rest {
      */
     private function _sendResponse($results) {
         $this->_setStatusHeader($results[1]['status'], $results[1]['message']); 
-        print_r($results[0]);
-        //exit;
+        
+        $action = '_sendResponse_' . $this->_format;
+        $this->{$action}($results[0]);
+        exit;
     }
+
+    /**
+     * Output response in raw format
+     */
+    private function _sendResponse_raw($results) {
+        print_r($results);
+    }
+    /**
+     * Output response in json format
+     */
+    private function _sendResponse_json($results) {
+        header("Content-type:application/json");
+        echo json_encode($results);
+    }
+    /**
+     * Output response in xml format
+     */
+    private function _sendResponse_xml($results) {
+        header("Content-type:text/xml");
+        $outXml = new SimpleXMLElement('<?xml version="1.0"?><response></response>');
+        $this->_convertArrayToXml($results, $outXml);
+
+        echo $outXml->asXML();
+    }
+
+    /**
+     * Convert a passed array into a passed SimpleXML object
+     *
+     * @param array            $inArray  the array to convert to XML
+     * @param SimpleXMLElement $outXml   XML element to update passed as reference
+     */
+    private function _convertArrayToXml($inArray, &$outXml) {
+        if (!is_array($inArray)) {
+            return;
+        }
+
+        foreach($inArray as $k => $v) {
+            if (is_numeric($k)) {
+                $k = 'element_' . $k;
+            }
+
+            if (is_array($v)) {
+                $childNode = $outXml->addChild($k);
+                $this->_convertArrayToXml($v, $childNode);
+            } else {
+                $outXml->addChild($k, $v);
+            }
+        }
+    } 
 
 
     /**
@@ -120,7 +187,7 @@ abstract class Rest {
      * @return array arguments stored in an associative array
      */
     private function _getRequestArguments($method, $passedArgs) {
-        $args;
+        $args = '';
 
         switch($method) {
             case 'get':
