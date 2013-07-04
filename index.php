@@ -39,6 +39,9 @@ define('VAL_MAX_LENGTH', 250);
 /**
  * Core functionality
  */
+
+if (!isset($_GET[REST_ARGS])) { exit; }
+
 $urlParts = getUrlParts();
 $className = $urlParts['front'];
 $controller = $urlParts['controller'];
