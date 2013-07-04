@@ -77,7 +77,7 @@ function getUrlParts() {
         'format' => popFormat(),
     );
 
-    $urlParts = explode('/', strtolower($_GET[REST_ARGS]));
+    $urlParts = explode('/', $_GET[REST_ARGS]);
     if (!is_array($urlParts)) { 
         setStatusHeader('404', 'Not Found');
         exit;
@@ -95,7 +95,7 @@ function getUrlParts() {
  * @return string           the 'front' of the REST call
  */
 function parseUrlFront($urlParts) {
-    return(ucfirst($urlParts[0]));
+    return(ucfirst(strtolower($urlParts[0])));
 }
 
 /**
@@ -104,7 +104,7 @@ function parseUrlFront($urlParts) {
  */
 function parseUrlController($urlParts) {
     if (count($urlParts) > 1 && $urlParts[1]) {
-        return($urlParts[1]);
+        return(strtolower($urlParts[1]));
     } else {
         return('index');
     }
