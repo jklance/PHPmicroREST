@@ -4,7 +4,7 @@
  *
  * @abstract
  * @package     PHPmicroREST
- * @version     1.1
+ * @version     1.0
  * @copyright   Copyright (c) 2013 Jer Lance (http://jerlance.com)
  * @license     http://opensource.org/licenses/LGPL-3.0 (LGPL 3.0)
  * 
@@ -66,7 +66,7 @@ abstract class Rest {
             $results = $this->$action();
         } else {
             $results = array(
-                array( 'error'  => 'Unknown endpoint' ),
+                array( 'error'  => 'Unknown endpoint ' . $name ),
                 array( 'status' => '404', 'message' => 'Not found' )
             );
         }
