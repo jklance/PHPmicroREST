@@ -183,6 +183,7 @@ abstract class Rest {
                 $childNode = $outXml->addChild($k);
                 $this->_convertArrayToXml($v, $childNode);
             } else {
+                $v = htmlentities($v);
                 $outXml->addChild($k, $v);
             }
         }
